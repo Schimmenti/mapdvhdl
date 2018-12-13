@@ -22,7 +22,8 @@ component fir
      clk   : in  std_logic;
      rst   : in  std_logic;
      x_in  : in  std_logic_vector(N-1 downto 0);
-     y_out : out std_logic_vector(N-1 downto 0));
+     y_out : out std_logic_vector(N-1 downto 0);
+     c0,c1,c2,c3,c4 : in unsigned(N-1 downto 0));
 end component;
 
 signal clk : std_logic :='0';
@@ -30,9 +31,15 @@ signal rst : std_logic :='0';
 signal xin : std_logic_vector(N-1 downto 0) := std_logic_vector(to_unsigned(1,N));
 signal yout : std_logic_vector(N-1 downto 0);
 signal cnt : unsigned(N-1 downto 0) := (others => '0');
+signal c0,c1,c2,c3,c4 : unsigned(N-1 downto 0);
 
 begin
-fir0 : fir port map (clk => clk, rst => rst, x_in => xin, y_out => yout);
+c0 <= to_unsigned(1,N);
+c1 <= to_unsigned(2,N);
+c2 <= to_unsigned(3,N);
+c3 <= to_unsigned(4,N);
+c4 <= to_unsigned(5,N);
+fir0 : fir port map (clk => clk, rst => rst, x_in => xin,y_out => yout, c0=>c0,c1=>c1,c2=>c2,c3=>c3,c4=>c4);
 sim_fir : process(clk) is
     begin
     if cnt = 1 then
