@@ -4,21 +4,21 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity fir is
 generic(N      : integer := 16;
-Q : integer := 0);
+Q : integer := 12);
   Port (
      clk   : in  std_logic;
      rst   : in  std_logic;
      -- we assume that all inputs x_in are integers
      x_in  : in  std_logic_vector(N-1 downto 0);
      y_out : out std_logic_vector(N-1 downto 0);
-     c0,c1,c2,c3,c4 : in unsigned(N-1 downto 0));
+     c0,c1,c2,c3,c4 : in signed(N-1 downto 0));
 end fir;
 
 --examples for coefficents
---we use fixed point binary point with 12 bits for fractional part and 4 for integer part
---0.19335315 approx 001100010111 -> 0000001100010111 = 0x317 =  791
---0.20330353 approx 001101000000 -> 0000001101000000 = 0x340 = 832
---0.20668665 approx 0.00110100 -> 0000001101001110 = 0x34E = 846
+--we use fixed point binary point with 11 bits for fractional part and 4 for integer part and 1 for the sign
+--0.19335315 approx 0.001100010111 -> 0|0000|00110001011 
+--0.20330353 approx 0.001101000000 -> 0|0000|00110100000
+--0.20668665 approx 0.001101001110 -> 0|0000|00110100111
 architecture rtl of fir is
 
 signal y01,y12,y23,y34 : std_logic_vector(N-1 downto 0)  := (others => '0');
@@ -41,12 +41,16 @@ f5 : fflop port map (clk => clk, rst => rst, a_in => x_sum, ff_out  => y_out);
 
 
 
-p_fir : process(clk)
+p_fir : process(clk,rst)
+variable x_sum_p_neg : std_logic_vector(2*N-1 downto 0);
+variable sgn : std_logic;
     begin
-    if rising_edge(clk) then
-    x_sum_part <= std_logic_vector(shift_right(c0*unsigned(x_in)+c1*unsigned(y01)+c2*unsigned(y12)+c3*unsigned(y23)+c4*unsigned(y34),Q));
-    
-    x_sum <= x_sum_part(N-1 downto 0);
+    if rst = '1' then
+    elsif rising_edge(clk) then
+    --x_sum_part <= std_logic_vector(shift_right(c0*signed(x_in)+c1*signed(y01)+c2*signed(y12)+c3*signed(y23)+c4*signed(y34),Q));
+     x_sum_part <= std_logic_vector(c0*signed(x_in)+c1*signed(y01)+c2*signed(y12)+c3*signed(y23)+c4*signed(y34));
+    sgn := x_sum_part(2*N-1);
+     x_sum <= sgn & x_sum_part(N-2 downto 0);
     end if;
 end process;
 
