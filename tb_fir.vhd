@@ -40,14 +40,16 @@ c2 <= to_signed(1,N);
 c3 <= to_signed(-2,N);
 c4 <= to_signed(1,N);
 fir0 : fir port map (clk => clk, rst => rst, x_in => xin,y_out => yout, c0=>c0,c1=>c1,c2=>c2,c3=>c3,c4=>c4);
-sim_fir : process(clk) is
+sim_fir : process(clk,rst) is
     begin
     if cnt = 0 then
     rst <= '1';
     rst <= '0' after 50 ns;
-    end if;
+    cnt <= cnt +1;
+    else
     clk <= not clk after 50 ns;
     cnt <= cnt + 1;
+    end if;
 end process;
 
 
