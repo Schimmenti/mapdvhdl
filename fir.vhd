@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity fir is
-generic(N      : integer := 16;
+generic(N      : integer := 32;
 Q : integer := 11);
   Port (
      clk   : in  std_logic;
@@ -46,16 +46,9 @@ f5 : fflop port map (clk => clk, rst => rst, a_in => x_sum, ff_out  => y_out);
 
 
 
-m0 <= c0*signed(x_in);
-m1 <= c1*signed(y01);
-m2 <= c2*signed(y12);
-m3 <= c3*signed(y23);
-m4 <= c4*signed(y34);
-x_sum_part <= std_logic_vector(shift_right(m0+m1+m2+m3+m4, Q));
+x_sum_part <= std_logic_vector(shift_right(c0*signed(x_in)+c1*signed(y01)+c2*signed(y12)+c3*signed(y23)+c4*signed(y34), Q));
 sgn <= x_sum_part(2*N-1);
-x_sum <= '0' & x_sum_part(N-2 downto 0);
-
-
+x_sum <= sgn & x_sum_part(N-2 downto 0);
 --p_fir : process(clk,rst)
 --variable sgn : std_logic;
 --    begin

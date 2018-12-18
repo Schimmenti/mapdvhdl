@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt]{report}
+\documentclass[a4paper,12pt]{article}
 
 
 \usepackage[english]{babel}
@@ -7,39 +7,89 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{latexsym}
-\usepackage{physics}
-\usepackage{listings}
 \usepackage{graphicx}
+\usepackage{beramono}% monospaced font with bold variant
+
+\usepackage{listings}
+\lstdefinelanguage{VHDL}{
+	morekeywords={
+		library,use,all,entity,is,port,in,out,end,architecture,of,
+		begin,and, std_logic_vector, shift_right,signed, end if, end process,if,else,process,not,after,wait
+	},
+	morecomment=[l]--
+}
+
+\usepackage{xcolor}
+\colorlet{keyword}{blue!100!black!80}
+\colorlet{comment}{green!90!black!90}
+\lstdefinestyle{vhdl}{
+	language     = VHDL,
+	basicstyle   = \ttfamily,
+	keywordstyle = \color{keyword}\bfseries,
+	commentstyle = \color{comment}
+}
 
 
-\begin{document}{\textbf{MAPD FPGA Lab 5 - Homework Report - Vincenzo Maria Schimmenti 1204565}}\\
-This homework is about implementing in VHDL a finite impulse response (FIR) filter. A FIR filter is a digital filter characterized by a finite duration impulse response, i.e. calling
-$c[n]$ the impulse response we would have:
+
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{MAPD FPGA Lab 5 - Homework Report}
+Vincenzo Maria Schimmenti 1204565\\
+This homework is about implementing in VHDL a finite impulse response (FIR) filter. A FIR filter is a digital filter characterized by a finite duration impulse response, i.e. calling $c[n]$ the impulse response we would have:
 $$c[n]=\begin{cases}
 \neq 0 & 0 \leq n \leq N \\
 = 0 & \textrm{otherwise}
 \end{cases}$$
-Given a signal $x[n]$ the output signal $y$ is the convolution:
-$$y[n+1]=c \circledast x = \sum_{i=0}^{n} c[i]x[n-i]$$
-Our version of the filter employs a filter with five terms:\\
+for some $N \in \mathbb{N}$. Given a signal $x[n]$ the output signal $y[n]$ is the convolution between $x$ and $c$:
+$$y[n+1]=c \circledast x = \sum_{i=0}^{N-1} c[i]x[n-i]$$
+Our version of the filter employs a filter with five terms. The circuit implementing this FIR filtyer (also called a 5-tap FIR filter) is shown below:\\
 \begin{figure}[h!]
 	\includegraphics[width=\linewidth]{fir5.png}
 	\caption{A 5-tap FIR}
 	\label{fig:fir5}
 \end{figure}\\
-Since the duration of the filter is 5 we need to employ, at each instant $n$, 4 flip-flops to store the previous 4 values of $x$ and another flip-flop to store the output:
+Since the duration of the filter is 5 we need to employ, at each instant $n$, 4 flip-flops to store the previous 4 values of the input and another flip-flop to store the output:
 $$y[n+1]=c_0 x[n] + c_1x[n-1]+c_2x[n-2]+c_3x[n-3] + c_4x[n-4]$$
-At time $n=0$ all the flip-flops are set to $0$ (thanks to a reset signal). The system is driven by a clock signal that, going from 0 to 1, triggers the flip flops: at instant $n$, in a parallel fashion, the first flip-flop stores the old input $x[n-1]$ while the other 3 store their left flip flop value. The last flip flop stores the convolution result and is as well updated by the clock signal.
-\newpage
-For example for $c[0]=1 \quad c[1]=2 \quad c[2]=3 \quad c[3]=4 \quad c[4]=5$ and $x[n]=1 \quad \forall n$ we would get $y[0]=0\quad y[1]=1 \quad y[2] =3 \quad y[3] = 6 \quad y[4] = 10 \quad y[5]=15$. The simulation on Vivado gives:
+At time $n=0$ all the flip-flops are set to $0$ (thanks to a reset signal). The system is driven by a clock signal that, going from 0 to 1 (the rising edge), triggers the flip flops: at instant $n$, in a parallel fashion, the first flip-flop stores the old input $x[n-1]$ while the other 3 store their left flip flop value; the last flip flop stores the convolution result (and is as well updated by the clock signal).
+\newpage For example for $c[0]=1 \quad c[1]=2 \quad c[2]=3 \quad c[3]=4 \quad c[4]=5$ and $x[n]=1 \quad \forall n$ we would get $y[0]=0\quad y[1]=1 \quad y[2] =3 \quad y[3] = 6 \quad y[4] = 10 \quad y[5]=15$. The simulation on Vivado gives:
 \begin{figure}[h!]
-	\begin{center}
-		\includegraphics[width=1.2\textwidth,keepaspectratio]{fir5ex.png}
-	\end{center}	
-	\caption{A 5-tap FIR example}
+	\begin{flushleft}
+		\includegraphics[width=1.2\linewidth,keepaspectratio]{fir5ex.png}
+	\end{flushleft}	
+	\caption{A 5-tap FIR example: the first row is the clock, the second is the reset signal, the third is the input and the last is the output.}
 	\label{fig:fir5ex}
 \end{figure}\\
-The first row is the clock, the second is the reset signal, the third is the input and the last is the output.\\
 The testbench uses one component, the fir filter component,
-which itself uses the flip flop component. All the inputs and output are logic vectors of length $N=16$ and the operations (addition and multiplication) are done via signed type numbers, either of length 16 or 32. The fir filter entity reads the value from flip flops as logic vectors, converts them into signed, does the convolution then performs the right shift of $Q=11$ bits and takes (since the result of the operation is 32 bits long) the lower 15 bits and the leading sign. The shift is needed since the coefficents of the filter are supposed to be premultiplied (i.e. left shifted) by $2^{11}$; we can see that for the coefficents we used a fixed point representation with 1 bit for the sign, 4 bits for the integer part and 11 for the fractional part; for example the number $0.19335315$ is in binary represented (approximately) by $0.00110001011$ so the sign bit is $0$ the integer part is $0000$ and the fractional is $00110001011$ so in hexadecimal the number is represented by 0x18B.
+which itself uses five flip flop components. All the inputs and outputs are std\_logic\_vectors of length $N=16$ and the operations (addition and multiplication) are done via signed type numbers, either of length 16 or 32. The fir filter entity reads the value from flip flops as logic vectors, converts them into signed, does the convolution then performs the right shift of $Q=11$ bits and takes (since the result of the operation is 32 bits long) the lower 15 bits and the leading sign; in order to do this we used a temporary 32 bit logic vector signal that stores the result of the convolution.
+\begin{lstlisting}[style=vhdl]
+x_sum_part <=
+std_logic_vector(shift_right(c0*signed(x_in)+c1*signed(y01)+
+c2*signed(y12)+c3*signed(y23)+c4*signed(y34), Q));
+
+sgn <= x_sum_part(2*N-1);
+
+x_sum <= sgn & x_sum_part(N-2 downto 0);
+\end{lstlisting}
+(in the code above the $y_{ij}$'s are the values stored in the 4 flip flops and the $c_i$'s, of course, are the filter coefficients)\\
+The shift is needed since the coefficents of the filter are supposed to be premultiplied by $2^{11}$ (i.e. left shifted by $11$) ; this is because we used for the coefficients a fixed point representation with 1 bit for the sign, 4 bits for the integer part and 11 for the fractional part; for example the number $0.19335315$ is in binary represented (approximately) by $0.00110001011$ so the sign bit is $0$ the integer part is $0000$ and the fractional is $00110001011$ so in hexadecimal the number is represented by 0x18B\\
+As we said the filter's flip flops are driven by a clock signal that we controlled this way:
+\begin{lstlisting}[style=vhdl]
+fir_clk : process(clk,rst) is
+begin
+if rst = '1' then
+rst <= '0';
+else
+clk <= not clk after 50 ns;
+end if;
+end process;
+\end{lstlisting}
+So if the reset signal is $0$ we set it to $1$ in order to reset all the flip flops otherwise we change the value of the clock after a period of $50$ ns.\\
+After making sure that the FIR was working we use it to the more concrete task of filtering a wav file; using a python script we created an input file that contained the amplitude of the wav file later passed to a new testbench so it could be filtered. After that we plotted the new spectrum against the filtered one, obtaining:
+\begin{figure}[h!]
+	\begin{flushleft}
+		\includegraphics[width=\linewidth,keepaspectratio]{f_spectrum.png}
+	\end{flushleft}	
+	\caption{The 5 -tap filter applied to a wav file}
+	\label{fig:fir5ex}
+\end{figure}\\
 \end{document}

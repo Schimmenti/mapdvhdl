@@ -14,7 +14,7 @@ USE IEEE.STD_LOGIC_TEXTIO.ALL;
 
 
 entity tb_fir is
-generic(N      : integer := 16);
+generic(N      : integer := 32; Q : integer := 11);
 end tb_fir;
 
 architecture Behavioral of tb_fir is
@@ -36,12 +36,11 @@ signal cnt : unsigned(N-1 downto 0) := (others => '0');
 signal c0,c1,c2,c3,c4 : signed(N-1 downto 0);
 
 begin
-c0 <= to_signed(2**11,N);
---c0 <= to_signed(193353*(2**10)/1000000,N);
-c1 <= to_signed(2*2**11,N);
-c2 <= to_signed(3*2**11,N);
-c3 <= to_signed(4*2**11,N);
-c4 <= to_signed(5*2**11,N);
+c0 <= to_signed(1*2**Q,N);
+c1 <= to_signed(2*2**Q,N);
+c2 <= to_signed(3*2**Q,N);
+c3 <= to_signed(4*2**Q,N);
+c4 <= to_signed(5*2**Q,N);
 fir0 : fir port map (clk => clk, rst => rst, x_in => xin,y_out => yout, c0=>c0,c1=>c1,c2=>c2,c3=>c3,c4=>c4);
 
 fir_clk : process(clk,rst) is
