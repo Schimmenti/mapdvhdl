@@ -14,7 +14,7 @@ USE IEEE.STD_LOGIC_TEXTIO.ALL;
 
 
 entity tb_fir is
-generic(N      : integer := 32; Q : integer := 11);
+generic(N      : integer := 16; Q : integer := 11);
 end tb_fir;
 
 architecture Behavioral of tb_fir is

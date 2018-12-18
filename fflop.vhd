@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity fflop is
-  generic(N : integer := 32);
+  generic(N : integer := 16);
   Port (clk  :   in  std_logic;
         rst  :   in  std_logic;                    
         a_in :   in std_logic_vector(N-1 downto 0);

@@ -42,7 +42,7 @@ $$c[n]=\begin{cases}
 \end{cases}$$
 for some $N \in \mathbb{N}$. Given a signal $x[n]$ the output signal $y[n]$ is the convolution between $x$ and $c$:
 $$y[n+1]=c \circledast x = \sum_{i=0}^{N-1} c[i]x[n-i]$$
-Our version of the filter employs a filter with five terms. The circuit implementing this FIR filtyer (also called a 5-tap FIR filter) is shown below:\\
+Our version of the filter employs a filter with five terms. The circuit implementing this FIR filter (also called a 5-tap FIR filter) is shown below:\\
 \begin{figure}[h!]
 	\includegraphics[width=\linewidth]{fir5.png}
 	\caption{A 5-tap FIR}
@@ -71,7 +71,10 @@ sgn <= x_sum_part(2*N-1);
 x_sum <= sgn & x_sum_part(N-2 downto 0);
 \end{lstlisting}
 (in the code above the $y_{ij}$'s are the values stored in the 4 flip flops and the $c_i$'s, of course, are the filter coefficients)\\
-The shift is needed since the coefficents of the filter are supposed to be premultiplied by $2^{11}$ (i.e. left shifted by $11$) ; this is because we used for the coefficients a fixed point representation with 1 bit for the sign, 4 bits for the integer part and 11 for the fractional part; for example the number $0.19335315$ is in binary represented (approximately) by $0.00110001011$ so the sign bit is $0$ the integer part is $0000$ and the fractional is $00110001011$ so in hexadecimal the number is represented by 0x18B\\
+The shift is needed since the coefficents of the filter are supposed to be premultiplied by $2^{11}$ (i.e. left shifted by $11$): this is because we want to use fractional coefficients and in order to do that we need a fixed point representation; our choice is 1 bit for the sign, 4 bits for the integer part and 11 for the fractional part. For example the number $0.19335315$ is in binary represented (approximately) by $0.00110001011$ so the sign bit is $0$ the integer part is $0000$ and the fractional is $00110001011$ so in hexadecimal the number is represented by 0x18B\\
+$$0.19335315 \to 0.00110001011 \to 0|0000|00110001011 \to \textrm{0x18B}$$
+$$0.20330353 \to 0.00110100000 \to 0|0000|00110100000 \to \textrm{0x1A0}$$
+$$0.20668665 \to 0.00110100111 \to 0|0000|00110100111 \to \textrm{0x1A7}$$
 As we said the filter's flip flops are driven by a clock signal that we controlled this way:
 \begin{lstlisting}[style=vhdl]
 fir_clk : process(clk,rst) is
@@ -83,13 +86,12 @@ clk <= not clk after 50 ns;
 end if;
 end process;
 \end{lstlisting}
-So if the reset signal is $0$ we set it to $1$ in order to reset all the flip flops otherwise we change the value of the clock after a period of $50$ ns.\\
-After making sure that the FIR was working we use it to the more concrete task of filtering a wav file; using a python script we created an input file that contained the amplitude of the wav file later passed to a new testbench so it could be filtered. After that we plotted the new spectrum against the filtered one, obtaining:
+So if the reset signal is $0$ we set it to $1$ in order to reset all the flip flops (and this happens only once at the start of the simulation) otherwise at each repetition of the process we change the value of the clock (with a period of $50$ ns). After making sure that the FIR was working we used it for the more concrete task of filtering a .wav file; using a python script we created an input file that contained the amplitudes of the .wav file, later passed to a new testbench so it could be filtered. After that we plotted the new spectrum against the filtered one, obtaining:
 \begin{figure}[h!]
-	\begin{flushleft}
-		\includegraphics[width=\linewidth,keepaspectratio]{f_spectrum.png}
-	\end{flushleft}	
-	\caption{The 5 -tap filter applied to a wav file}
+	\begin{center}
+		\includegraphics[width=0.6\linewidth,keepaspectratio]{f_spectrum.png}
+	\end{center}	
+	\caption{The 5 -tap filter applied to a .wav file}
 	\label{fig:fir5ex}
-\end{figure}\\
+\end{figure}
 \end{document}

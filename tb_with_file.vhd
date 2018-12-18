@@ -31,14 +31,14 @@ USE IEEE.STD_LOGIC_TEXTIO.ALL;
 USE IEEE.STD_LOGIC_ARITH.ALL;
 
 entity tb_fir_file is
-  generic(N      : integer := 32);
+  generic(N      : integer := 16);
 --  Port ( );
 end tb_fir_file;
 
 architecture Behavioral of tb_fir_file is
 
 component fir is
-  generic(N      : integer := 32);
+  generic(N      : integer := 16);
   Port (
      clk   : in  std_logic;
      rst   : in  std_logic;

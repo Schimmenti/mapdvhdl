@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity fir is
-generic(N      : integer := 32;
+generic(N      : integer := 16;
 Q : integer := 11);
   Port (
      clk   : in  std_logic;
