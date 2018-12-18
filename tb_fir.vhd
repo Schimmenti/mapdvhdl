@@ -30,18 +30,18 @@ end component;
 
 signal clk : std_logic :='0';
 signal rst : std_logic :='1';
-signal xin : std_logic_vector(N-1 downto 0) := std_logic_vector(to_signed(1000,N));
+signal xin : std_logic_vector(N-1 downto 0) := std_logic_vector(to_signed(1,N));
 signal yout : std_logic_vector(N-1 downto 0);
 signal cnt : unsigned(N-1 downto 0) := (others => '0');
 signal c0,c1,c2,c3,c4 : signed(N-1 downto 0);
 
 begin
-c0 <= to_signed(16#18B#,N);
+c0 <= to_signed(2**11,N);
 --c0 <= to_signed(193353*(2**10)/1000000,N);
-c1 <= to_signed(16#1A0#,N);
-c2 <= to_signed(16#1A7#,N);
-c3 <= to_signed(16#1A0#,N);
-c4 <= to_signed(16#18B#,N);
+c1 <= to_signed(2*2**11,N);
+c2 <= to_signed(3*2**11,N);
+c3 <= to_signed(4*2**11,N);
+c4 <= to_signed(5*2**11,N);
 fir0 : fir port map (clk => clk, rst => rst, x_in => xin,y_out => yout, c0=>c0,c1=>c1,c2=>c2,c3=>c3,c4=>c4);
 
 fir_clk : process(clk,rst) is
