@@ -21,26 +21,51 @@ end break_measure;
 
 architecture Behavioral of break_measure is
 
-type bm_state is (s_idle, s_finished, s_1_pulse, s_distance,s_2_pulse); 
+type bm_state is (s_idle,s_wait, s_pulse, s_measure); 
 signal bms : bm_state;
 begin
 
 bm_fsm : process(clk, rst, pulses_in) is
+variable cnt : unsigned(5 downto 0);
 begin
     if rst = '1' then
-        count_out <= (others => '0');
+        bms <= s_idle;
+        cnt := (others => '0');
         done_out <= '0';
     elsif rising_edge(clk) then
-        case bms is
+          case bms is
             when s_idle =>
-            if pulses_in = '1' then
-                bms <= s_1_pulse;
+            if pulses_in = '1' then --first pulse about to start
+                bms <= s_pulse;
             else
-                bms <= s_idle;
+                bms <= s_idle; 
             end if;
-            when 
+            cnt := "0";
+            when s_pulse =>
+               if pulses_in = '1' then --still in the pulse
+                  bms <= s_pulse;
+                  cnt := "0";
+               else
+                  bms <= s_measure;
+                  cnt := "1";
+               end if;
+             when s_measure =>
+                if pulses_in = '1' then --measure finished
+                    bms <= s_wait;
+                else
+                    cnt := cnt + 1;
+                    bms <= s_measure;
+                end if;
+             when s_wait =>
+             when others =>
+                bms <= s_idle;
+                cnt := (others => '0');
+                done_out <= '0';
+             end case;
     end if;
+    count_out <= cnt;
 end process;
+
 
 
 end Behavioral;
