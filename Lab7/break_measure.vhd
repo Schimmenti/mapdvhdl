@@ -45,6 +45,7 @@ begin
                if pulses_in = '1' then --still in the pulse
                   bms <= s_pulse;
                   cnt := "0";
+				  done_out <= '0';
                else
                   bms <= s_measure;
                   cnt := "1";
@@ -52,11 +53,19 @@ begin
              when s_measure =>
                 if pulses_in = '1' then --measure finished
                     bms <= s_wait;
+					cnt := 0;
                 else
                     cnt := cnt + 1;
                     bms <= s_measure;
                 end if;
              when s_wait =>
+				if cnt < DONE_TIME then
+					cnt:= cnt + 1;
+				else
+					done_out <= '0';
+					cnt := '0'
+					bms <= s_idle;
+				end if;
              when others =>
                 bms <= s_idle;
                 cnt := (others => '0');
