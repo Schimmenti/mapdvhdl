@@ -21,17 +21,41 @@ end break_measure;
 
 architecture Behavioral of break_measure is
 
+COMPONENT ila_0
+
+PORT (
+	clk : IN STD_LOGIC;
+
+	probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+	probe1 : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
+	probe2 : IN STD_LOGIC_VECTOR(1 DOWNTO 0)
+);
+END COMPONENT  ;
+
 type bm_state is (s_idle,s_wait, s_pulse, s_measure); 
 signal bms : bm_state;
+signal count : STD_LOGIC_VECTOR(5 downto 0);
+signal done : std_logic;
+signal vState : std_logic_vector(1 downto 0);
 begin
 
+ila0 : ila_0
+PORT MAP (
+	clk => clk,
+	probe0(0) => done,
+	probe1 => count,
+	probe2 => vState
+);
+
 bm_fsm : process(clk, rst, pulses_in) is
-variable cnt : unsigned(5 downto 0);
+variable cnt : integer;
+variable wcnt : integer;
 begin
     if rst = '1' then
         bms <= s_idle;
-        cnt := (others => '0');
-        done_out <= '0';
+        cnt := 0;
+        wcnt := 0;
+        done <= '0';
     elsif rising_edge(clk) then
           case bms is
             when s_idle =>
@@ -40,39 +64,47 @@ begin
             else
                 bms <= s_idle; 
             end if;
-            cnt := "0";
+            cnt := 0;
+            wcnt := 0;
+            done <= '0';
             when s_pulse =>
                if pulses_in = '1' then --still in the pulse
                   bms <= s_pulse;
-                  cnt := "0";
-				  done_out <= '0';
                else
                   bms <= s_measure;
-                  cnt := "1";
                end if;
              when s_measure =>
                 if pulses_in = '1' then --measure finished
                     bms <= s_wait;
-					cnt := 0;
+		            wcnt := 0;
                 else
                     cnt := cnt + 1;
                     bms <= s_measure;
                 end if;
              when s_wait =>
-				if cnt < DONE_TIME then
-					cnt:= cnt + 1;
+				if wcnt < DONE_TIME then
+					done <= '1';
+					wcnt := wcnt + 1;
+					bms <= s_wait;
 				else
-					done_out <= '0';
-					cnt := '0'
+				    --go back to idle state
+					done<= '0';
+					wcnt := 0;
+					cnt := 0;
 					bms <= s_idle;
 				end if;
              when others =>
+             --go back to idle state
+                done<= '0';
+                wcnt := 0;
+                cnt := 0;
                 bms <= s_idle;
-                cnt := (others => '0');
-                done_out <= '0';
              end case;
     end if;
-    count_out <= cnt;
+    done_out <= done;
+    vState <= std_logic_vector(to_unsigned(bm_state'pos(bms),2));
+    count <= std_logic_vector(to_unsigned(cnt, 6));
+    count_out <= to_unsigned(cnt, 6);
 end process;
 
 

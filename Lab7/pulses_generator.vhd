@@ -24,22 +24,6 @@ end pulses_generator;
 architecture Behavioral of pulses_generator is
 
 
---COMPONENT vio_0
---  PORT (
---    clk : IN STD_LOGIC;
---    probe_out0 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
---  );
---END COMPONENT;
-
---COMPONENT ila_0
---PORT (
---	clk : IN STD_LOGIC;
---	probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0); 
---	probe1 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
---	probe2 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
---	probe3 : IN STD_LOGIC_VECTOR(2 DOWNTO 0)
---);
---END COMPONENT  ;
 
 signal en_gen_p : std_logic;
 signal y : std_logic;
@@ -112,19 +96,7 @@ end process;
 
 y_out <= y;
 
---vio : vio_0
---  PORT MAP (
---    clk => clk,
---    probe_out0(0) => en_gen_in
---  );
+
  
---ila : ila_0
---  PORT MAP (
---      clk => clk,  
---      probe0(0) => en_gen_in, 
---      probe1(0) => en_gen_p,
---      probe2(0) => y,
---      probe3    => std_logic_vector(to_unsigned(state'pos(state_fsm),3))
---  );    
   
 end Behavioral;
