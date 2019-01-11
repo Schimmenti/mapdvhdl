@@ -32,9 +32,13 @@ signal ready_s : std_logic :='0';
 signal bufout : std_logic_vector(TXBITS-1 downto 0) := txd;
 signal bufin :  std_logic_vector(RXBITS-1 downto 0) := (others => '0');
 
+
+
 type state is (s_idle, s_send, s_read);
 signal ms_state : state := s_idle;
 begin
+
+
 
 fsm_process : process (clock, reset, start) is
 variable tcnt : integer := 0;
@@ -77,7 +81,7 @@ case ms_state is
         elsif tcnt = WTIME then
             tcnt := 0;
             sclk_s <= '0';
-            if rcnt = 0 then --finished sending instruction
+            if rcnt = 0 then --finished receiving instruction
                 rcnt := RXBITS - 1;
                 tcnt := 0; --wrong?
                 ms_state <= s_idle;
@@ -90,11 +94,10 @@ case ms_state is
         end if;
         
 end case;
-
-end process;
 sclk <= sclk_s;
 mosi <= mosi_s;
 cs <= cs_s;
 ready <= ready_s;
+end process;
 end Behavioral;
 

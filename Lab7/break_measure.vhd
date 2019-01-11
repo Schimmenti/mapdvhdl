@@ -28,7 +28,9 @@ PORT (
 
 	probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
 	probe1 : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
-	probe2 : IN STD_LOGIC_VECTOR(1 DOWNTO 0)
+	probe2 : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+	probe3 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+	probe4 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
 );
 END COMPONENT  ;
 
@@ -44,7 +46,9 @@ PORT MAP (
 	clk => clk,
 	probe0(0) => done,
 	probe1 => count,
-	probe2 => vState
+	probe2 => vState,
+	probe3(0) => clk,
+	probe4(0) => pulses_in
 );
 
 bm_fsm : process(clk, rst, pulses_in) is
@@ -58,29 +62,25 @@ begin
         done <= '0';
     elsif rising_edge(clk) then
           case bms is
-            when s_idle =>
-            if pulses_in = '1' then --first pulse about to start
+            when s_idle => --pretty sure it's correct
+            if pulses_in ='1' then --first pulse about to start
                 bms <= s_pulse;
             else
                 bms <= s_idle; 
             end if;
-            cnt := 0;
-            wcnt := 0;
-            done <= '0';
             when s_pulse =>
-               if pulses_in = '1' then --still in the pulse
-                  bms <= s_pulse;
-               else
+               if pulses_in ='0' then --pulse finished
                   bms <= s_measure;
+               else
+                  bms <= s_pulse;
                end if;
              when s_measure =>
-                if pulses_in = '1' then --measure finished
+                if pulses_in ='1' then --measure finished
                     bms <= s_wait;
-		            wcnt := 0;
-                else
-                    cnt := cnt + 1;
+                else             
                     bms <= s_measure;
                 end if;
+                cnt := cnt + 1;
              when s_wait =>
 				if wcnt < DONE_TIME then
 					done <= '1';
@@ -93,12 +93,6 @@ begin
 					cnt := 0;
 					bms <= s_idle;
 				end if;
-             when others =>
-             --go back to idle state
-                done<= '0';
-                wcnt := 0;
-                cnt := 0;
-                bms <= s_idle;
              end case;
     end if;
     done_out <= done;
