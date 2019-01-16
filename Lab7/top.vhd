@@ -48,7 +48,7 @@ signal counter : unsigned(5 downto 0);
 -- Debug 
 signal vio_rst, vio_en_trig : std_logic;
 
-COMPONENT vio_1
+COMPONENT vio_0
   PORT (
     clk : IN STD_LOGIC;
     probe_out0 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
@@ -70,7 +70,7 @@ count : break_measure
      generic map (DONE_TIME => 100000000) -- in number of clock cycles -> 1 second
      port map(clk => clk, rst => rst, pulses_in => pulses_in, count_out => counter, done_out => done_out);          
 
-vio1 : vio_1
+vio0 : vio_0
   PORT MAP (
     clk => clk,
     probe_out0(0) => vio_rst,

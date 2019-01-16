@@ -34,7 +34,7 @@ PORT (
 );
 END COMPONENT  ;
 
-type bm_state is (s_idle,s_wait, s_pulse, s_measure); 
+type bm_state is (s_idle, s_pulse, s_measure,s_wait); 
 signal bms : bm_state;
 signal count : STD_LOGIC_VECTOR(5 downto 0);
 signal done : std_logic;
