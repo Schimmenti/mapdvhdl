@@ -29,6 +29,8 @@ type state_sg is (s_idle, s_high,s_low);
    signal state   : state_sg;
 
 signal y : std_logic_vector(31 downto 0);
+signal addr_s : std_logic_vector(9 downto 0);  
+signal we_s : std_logic;
 
 constant HIGH_D : integer := (PERIOD*DUTY_CYC)/100;
 constant LOW_D : integer := PERIOD-HIGH_D;
@@ -45,27 +47,36 @@ begin
 sqgen : process(clk, rst, en_gen_in)
 variable d_cnt  : integer; --high counter
 variable s_cnt : integer; --sample counter
+
 begin
 	if rising_edge(clk) then
 	   if rst = '1' then
 	       state <= s_idle;
 	       d_cnt := 0;
 	       s_cnt := 0;
+	       we_s <= '0';
 	   else
 	       case state is
 	       
 	       when s_idle =>
 	           if en_gen_in = '1' then
 	               state <= s_high;
-	               d_cnt := 0;
+	               --d_cnt := 1;
+                   --s_cnt := 1;
+                   --y <= std_logic_vector(to_signed(1024 , y'length));
+                   d_cnt := 0;
                    s_cnt := 0;
+                   we_s <= '0';
 	           end if;
 	       when s_high =>
 	           if s_cnt = SAMPLE_N then --maybe i finished
 	               state <= s_idle;
 	               d_cnt := 0;
 	               s_cnt := 0;
+	               we_s <= '0';
 	           else
+	               we_s <= '1';
+	           	   addr_s <= std_logic_vector(to_unsigned(s_cnt, addr_s'length));
 	               d_cnt := d_cnt + 1;
 	               s_cnt := s_cnt + 1;
 	               y <= std_logic_vector(to_signed(1024 , y'length));
@@ -79,7 +90,10 @@ begin
                    state <= s_idle;
                    d_cnt := 0;
                    s_cnt := 0;
+                   we_s <= '0';
                else
+                   we_s <= '1';
+               	   addr_s <= std_logic_vector(to_unsigned(s_cnt, addr_s'length));
                    d_cnt := d_cnt + 1;
                    s_cnt := s_cnt + 1;
                    y <= std_logic_vector(to_signed(-1024 , y'length));
@@ -94,5 +108,6 @@ begin
 end process;
 
 y_out <= y;
-
+address_out <= addr_s;
+we_out <= we_s;
 end Behavioral;
